@@ -133,16 +133,29 @@ document.addEventListener('DOMContentLoaded', function() {
         if (funds >= selectedMission.cost) {
           funds -= selectedMission.cost;
           const success = Math.random() <= selectedMission.successRate;
-          if (success) {
-            funds += selectedMission.reward;
-            reputation += selectedMission.reputationGain;
-            level += selectedMission.levelGain;
-            feedback.textContent = `Mission successful! You gained ${selectedMission.reputationGain} reputation, ${selectedMission.levelGain} level(s), and $${selectedMission.reward}.`;
-          } else {
-            reputation -= selectedMission.reputationLoss;
-            feedback.textContent = `Mission failed. You lost ${selectedMission.reputationLoss} reputation.`;
-          }
-          updatePlayerStats();
+          const missionInProgressMessage = `You are attempting to ${selectedMission.name}, everything looks clear.`;
+          
+          const feedbackContainer = document.getElementById('feedback-container');
+          const feedbackElement = document.createElement('div');
+          feedbackElement.textContent = missionInProgressMessage;
+          feedbackContainer.prepend(feedbackElement);
+  
+          setTimeout(() => {
+            if (success) {
+              funds += selectedMission.reward;
+              reputation += selectedMission.reputationGain;
+              level += selectedMission.levelGain;
+              feedbackElement.textContent = `Mission successful! You gained ${selectedMission.reputationGain} reputation, ${selectedMission.levelGain} level(s), and $${selectedMission.reward}.`;
+            } else {
+              reputation -= selectedMission.reputationLoss;
+              feedbackElement.textContent = `Mission failed. You lost ${selectedMission.reputationLoss} reputation.`;
+            }
+            updatePlayerStats();
+  
+            if (feedbackContainer.children.length > 3) {
+              feedbackContainer.removeChild(feedbackContainer.lastChild);
+            }
+          }, getRandomDelay(5000, 15000)); // Random delay between 5 and 15 seconds
         } else {
           feedback.textContent = 'Insufficient funds for this mission.';
         }
@@ -151,6 +164,11 @@ document.addEventListener('DOMContentLoaded', function() {
       feedback.textContent = 'No mission selected.';
     }
   }
+
+  function getRandomDelay(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
   function updateInventory() {
     inventoryList.innerHTML = '';
     inventoryItems.forEach(item => {
