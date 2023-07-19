@@ -19,7 +19,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const inventoryList = document.getElementById('inventory-list');
   const playerStats = document.getElementById('player-stats');
-  const feedback = document.getElementById('feedback');
+  const missionFeedbackContainer = document.getElementById('mission-feedback');
+  const buyActionFeedbackContainer = document.getElementById('action-feedback');
+  const feedbackContainer = document.getElementById('market-feedback');
   
   const buyButton = document.getElementById('buy-button');
   buyButton.addEventListener('click', buyItem);
@@ -53,19 +55,19 @@ document.addEventListener('DOMContentLoaded', function() {
               const techFluctuation = item.cost * (Math.random() * -0.2);
               item.cost = Math.round(Math.max(10, item.cost + techFluctuation));
               item.sellValue = Math.round(Math.max(5, item.sellValue + techFluctuation / 2));
-              feedback.textContent = `Tech Advances! The cost of ${item.name} has decreased.`;
+              feedbackContainer.textContent = `Tech Advances! The cost of ${item.name} has decreased.`;
               break;
             case "Market Crash":
               const crashFluctuation = item.cost * (Math.random() * -0.3);
               item.cost = Math.round(Math.max(10, item.cost + crashFluctuation));
               item.sellValue = Math.round(Math.max(5, item.sellValue + crashFluctuation / 2));
-              feedback.textContent = `Market Crash! The cost of ${item.name} has decreased.`;
+              feedbackContainer.textContent = `Market Crash! The cost of ${item.name} has decreased.`;
               break;
             case "Resource Scarcity":
               const scarcityFluctuation = item.cost * (Math.random() * 0.3);
               item.cost = Math.round(Math.max(10, item.cost + scarcityFluctuation));
               item.sellValue = Math.round(Math.max(5, item.sellValue + scarcityFluctuation / 2));
-              feedback.textContent = `Resource Scarcity! The cost of ${item.name} has increased.`;
+              feedbackContainer.textContent = `Resource Scarcity! The cost of ${item.name} has increased.`;
               break;
           }
         }
@@ -88,9 +90,15 @@ document.addEventListener('DOMContentLoaded', function() {
             inventoryItems.push({ name: selectedItem, quantity: 1, cost: selectedItemObj.cost, sellValue: selectedItemObj.sellValue, risk: selectedItemObj.risk });
           }
           funds -= selectedItemObj.cost;
-          feedback.textContent = `You successfully purchased ${selectedItem} for $${selectedItemObj.cost}.`;
+          const feedbackElement = document.createElement('div');
+          feedbackElement.textContent = `You successfully purchased ${selectedItem} for $${selectedItemObj.cost}.`;
+          buyActionFeedbackContainer.prepend(feedbackElement);
           updateInventory();
           updatePlayerStats();
+
+          if (buyActionFeedbackContainer.children.length > 3) {
+            buyActionFeedbackContainer.removeChild(buyActionFeedbackContainer.lastChild);
+          }
         } else {
           feedback.textContent = 'Insufficient funds.';
         }
@@ -110,12 +118,20 @@ document.addEventListener('DOMContentLoaded', function() {
         if (Math.random() <= successRate) {
           existingItem.quantity--;
           funds += existingItem.sellValue;
-          feedback.textContent = `You successfully sold ${selectedItem} for $${existingItem.sellValue}.`;
+          const feedbackElement = document.createElement('div');
+          feedbackElement.textContent = `You successfully sold ${selectedItem} for $${existingItem.sellValue}.`;
+          buyActionFeedbackContainer.prepend(feedbackElement);
         } else {
-          feedback.textContent = `Failed to sell ${selectedItem}. Try again later.`;
+          const feedbackElement = document.createElement('div');
+          feedbackElement.textContent = `Failed to sell ${selectedItem}. Try again later.`;
+          buyActionFeedbackContainer.prepend(feedbackElement);
         }
         updateInventory();
         updatePlayerStats();
+
+        if (buyActionFeedbackContainer.children.length > 3) {
+          buyActionFeedbackContainer.removeChild(buyActionFeedbackContainer.lastChild);
+        }
       } else {
         feedback.textContent = 'Item not found in inventory or no quantity available to sell.';
       }
@@ -134,12 +150,11 @@ document.addEventListener('DOMContentLoaded', function() {
           funds -= selectedMission.cost;
           const success = Math.random() <= selectedMission.successRate;
           const missionInProgressMessage = `You are attempting to ${selectedMission.name}, everything looks clear.`;
-          
-          const feedbackContainer = document.getElementById('feedback-container');
+        
           const feedbackElement = document.createElement('div');
           feedbackElement.textContent = missionInProgressMessage;
-          feedbackContainer.prepend(feedbackElement);
-  
+          missionFeedbackContainer.prepend(feedbackElement);
+
           setTimeout(() => {
             if (success) {
               funds += selectedMission.reward;
@@ -151,9 +166,9 @@ document.addEventListener('DOMContentLoaded', function() {
               feedbackElement.textContent = `Mission failed. You lost ${selectedMission.reputationLoss} reputation.`;
             }
             updatePlayerStats();
-  
-            if (feedbackContainer.children.length > 3) {
-              feedbackContainer.removeChild(feedbackContainer.lastChild);
+
+            if (missionFeedbackContainer.children.length > 3) {
+              missionFeedbackContainer.removeChild(missionFeedbackContainer.lastChild);
             }
           }, getRandomDelay(5000, 15000)); // Random delay between 5 and 15 seconds
         } else {
@@ -163,10 +178,6 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       feedback.textContent = 'No mission selected.';
     }
-  }
-
-  function getRandomDelay(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
   function updateInventory() {
@@ -213,5 +224,9 @@ document.addEventListener('DOMContentLoaded', function() {
       option.textContent = `${mission.name} - Cost: $${mission.cost}, Reward: $${mission.reward}`;
       missionSelect.appendChild(option);
     });
+  }
+
+  function getRandomDelay(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 });

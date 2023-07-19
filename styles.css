@@ -15,18 +15,24 @@ body {
 }
 
 #game-display {
-  background-color: #1a1a1a;
-  padding: 20px;
-  border-radius: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-#player-stats {
-  margin-top: 10px;
+#inventory,
+#missions {
+  flex: 1 1 calc(66.66% - 20px);
+  max-width: 400px;
+  margin: 10px;
 }
 
-#actions {
-  margin-top: 20px;
+#action-feedback,
+#market-feedback,
+#mission-feedback {
+  flex: 1 1 calc(33.33% - 20px);
+  max-width: 400px;
+  margin: 10px;
 }
 
 button {
@@ -40,20 +46,14 @@ button {
   cursor: pointer;
 }
 
-#inventory, #missions {
-  margin-top: 20px;
-  background-color: #1a1a1a;
-  padding: 20px;
-  border-radius: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.3);
-}
-
-#inventory-list, #mission-list {
+#inventory-list,
+#mission-list {
   list-style-type: none;
   padding: 0;
 }
 
-#inventory-list li, #mission-list li {
+#inventory-list li,
+#mission-list li {
   margin-bottom: 5px;
 }
 
@@ -65,17 +65,16 @@ button {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
-
-#feedback-container {
+#feedback {
   margin-top: 20px;
   background-color: #1a1a1a;
   padding: 20px;
   border-radius: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.3);
-  max-height: 150px; /* Adjust the height as desired */
-  overflow-y: scroll;
 }
 
-#feedback {
-  margin-bottom: 10px; /* Add margin to separate messages */
+#player-stats {
+  
+  max-width: 400px;
+  margin: 10px;
 }
