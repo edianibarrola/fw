@@ -28,8 +28,21 @@ document.addEventListener('DOMContentLoaded', function() {
   const missionButton = document.getElementById('mission-button');
   missionButton.addEventListener('click', performMission);
 
-  updateInventory();
-  updateMissions();
+  function startPriceFluctuations() {
+    setInterval(() => {
+      inventoryItems.forEach(item => {
+        const fluctuation = item.cost * (Math.random() * 0.2 - 0.1);
+        const newPrice = Math.max(10, item.cost + fluctuation); 
+        item.cost = Math.round(newPrice);
+        item.sellValue = Math.round(newPrice * 0.5); 
+      });
+      updateInventory();
+      updateBuyOptions();
+      updateSellOptions();
+    }, 10000);
+  }
+  
+  startPriceFluctuations(); // Start price fluctuations
 
   function buyItem() {
     const selectItem = document.getElementById('buy-select');
@@ -41,6 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
           const existingItem = inventoryItems.find(item => item.name === selectedItem);
           if (existingItem) {
             existingItem.quantity++;
+            existingItem.cost = selectedItemObj.cost; // Update the cost of the item in inventory
           } else {
             inventoryItems.push({ name: selectedItem, quantity: 1, cost: selectedItemObj.cost, sellValue: selectedItemObj.sellValue });
           }
@@ -83,14 +97,27 @@ document.addEventListener('DOMContentLoaded', function() {
       li.textContent = `${item.name} (${item.quantity}) - $${item.cost}`;
       inventoryList.appendChild(li);
     });
+  }
 
+  function updateBuyOptions() {
+    const buySelect = document.getElementById('buy-select');
+    buySelect.innerHTML = '<option value="">Select item to buy</option>';
+    inventoryItems.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.name;
+      option.textContent = `${item.name} - $${item.cost}`; // Show current cost
+      buySelect.appendChild(option);
+    });
+  }
+
+  function updateSellOptions() {
     const sellSelect = document.getElementById('sell-select');
     sellSelect.innerHTML = '<option value="">Select item to sell</option>';
     inventoryItems.forEach(item => {
       if (item.quantity > 0) {
         const option = document.createElement('option');
         option.value = item.name;
-        option.textContent = `${item.name} - $${item.sellValue}`;
+        option.textContent = `${item.name} - $${item.sellValue}`; // Show current sell value
         sellSelect.appendChild(option);
       }
     });
@@ -138,4 +165,8 @@ document.addEventListener('DOMContentLoaded', function() {
       feedback.textContent = 'No mission selected.';
     }
   }
+  
+  updateInventory();
+  updateMissions();
+  updatePlayerStats();
 });
