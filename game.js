@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
   const inventoryItems = [
-    { name: "Plasma Blaster", quantity: 1, cost: 100, sellValue: 50 },
-    { name: "Cybernetic Implant", quantity: 2, cost: 150, sellValue: 75 },
-    { name: "Nano Enhancer", quantity: 3, cost: 200, sellValue: 100 }
+    { name: "Plasma Blaster", quantity: 1, cost: 100, sellValue: 75, risk: 0.2 },
+    { name: "Cybernetic Implant", quantity: 2, cost: 150, sellValue: 120, risk: 0.3 },
+    { name: "Nano Enhancer", quantity: 3, cost: 200, sellValue: 160, risk: 0.4 },
+    { name: "Quantum Capacitor", quantity: 0, cost: 500, sellValue: 400, risk: 0.6 },
+    { name: "Fusion Core", quantity: 0, cost: 800, sellValue: 600, risk: 0.7 }
   ];
 
   const missions = [
@@ -28,21 +30,49 @@ document.addEventListener('DOMContentLoaded', function() {
   const missionButton = document.getElementById('mission-button');
   missionButton.addEventListener('click', performMission);
 
+  startPriceFluctuations();
+  updateInventory();
+  updateMissions();
+  updatePlayerStats();
+
   function startPriceFluctuations() {
     setInterval(() => {
       inventoryItems.forEach(item => {
         const fluctuation = item.cost * (Math.random() * 0.2 - 0.1);
         const newPrice = Math.max(10, item.cost + fluctuation); 
         item.cost = Math.round(newPrice);
-        item.sellValue = Math.round(newPrice * 0.5); 
+        item.sellValue = Math.round(newPrice * 0.8); 
+
+        // Market event
+        if (Math.random() < 0.1) {  
+          const eventTypes = ["Tech Advances", "Market Crash", "Resource Scarcity"];
+          const selectedEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+
+          switch(selectedEvent) {
+            case "Tech Advances":
+              const techFluctuation = item.cost * (Math.random() * -0.2);
+              item.cost = Math.round(Math.max(10, item.cost + techFluctuation));
+              item.sellValue = Math.round(Math.max(5, item.sellValue + techFluctuation / 2));
+              feedback.textContent = `Tech Advances! The cost of ${item.name} has decreased.`;
+              break;
+            case "Market Crash":
+              const crashFluctuation = item.cost * (Math.random() * -0.3);
+              item.cost = Math.round(Math.max(10, item.cost + crashFluctuation));
+              item.sellValue = Math.round(Math.max(5, item.sellValue + crashFluctuation / 2));
+              feedback.textContent = `Market Crash! The cost of ${item.name} has decreased.`;
+              break;
+            case "Resource Scarcity":
+              const scarcityFluctuation = item.cost * (Math.random() * 0.3);
+              item.cost = Math.round(Math.max(10, item.cost + scarcityFluctuation));
+              item.sellValue = Math.round(Math.max(5, item.sellValue + scarcityFluctuation / 2));
+              feedback.textContent = `Resource Scarcity! The cost of ${item.name} has increased.`;
+              break;
+          }
+        }
       });
-      updateInventory();
-      updateBuyOptions();
-      updateSellOptions();
+      updateInventory(); 
     }, 10000);
   }
-  
-  startPriceFluctuations(); // Start price fluctuations
 
   function buyItem() {
     const selectItem = document.getElementById('buy-select');
@@ -54,9 +84,8 @@ document.addEventListener('DOMContentLoaded', function() {
           const existingItem = inventoryItems.find(item => item.name === selectedItem);
           if (existingItem) {
             existingItem.quantity++;
-            existingItem.cost = selectedItemObj.cost; // Update the cost of the item in inventory
           } else {
-            inventoryItems.push({ name: selectedItem, quantity: 1, cost: selectedItemObj.cost, sellValue: selectedItemObj.sellValue });
+            inventoryItems.push({ name: selectedItem, quantity: 1, cost: selectedItemObj.cost, sellValue: selectedItemObj.sellValue, risk: selectedItemObj.risk });
           }
           funds -= selectedItemObj.cost;
           feedback.textContent = `You successfully purchased ${selectedItem} for $${selectedItemObj.cost}.`;
@@ -77,9 +106,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (selectedItem) {
       const existingItem = inventoryItems.find(item => item.name === selectedItem);
       if (existingItem && existingItem.quantity > 0) {
-        existingItem.quantity--;
-        funds += existingItem.sellValue;
-        feedback.textContent = `You successfully sold ${selectedItem} for $${existingItem.sellValue}.`;
+        const successRate = 0.6; // Selling success rate
+        if (Math.random() <= successRate) {
+          existingItem.quantity--;
+          funds += existingItem.sellValue;
+          feedback.textContent = `You successfully sold ${selectedItem} for $${existingItem.sellValue}.`;
+        } else {
+          feedback.textContent = `Failed to sell ${selectedItem}. Try again later.`;
+        }
         updateInventory();
         updatePlayerStats();
       } else {
@@ -88,54 +122,6 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       feedback.textContent = 'No item selected for sale.';
     }
-  }
-
-  function updateInventory() {
-    inventoryList.innerHTML = '';
-    inventoryItems.forEach(item => {
-      const li = document.createElement('li');
-      li.textContent = `${item.name} (${item.quantity}) - $${item.cost}`;
-      inventoryList.appendChild(li);
-    });
-  }
-
-  function updateBuyOptions() {
-    const buySelect = document.getElementById('buy-select');
-    buySelect.innerHTML = '<option value="">Select item to buy</option>';
-    inventoryItems.forEach(item => {
-      const option = document.createElement('option');
-      option.value = item.name;
-      option.textContent = `${item.name} - $${item.cost}`; // Show current cost
-      buySelect.appendChild(option);
-    });
-  }
-
-  function updateSellOptions() {
-    const sellSelect = document.getElementById('sell-select');
-    sellSelect.innerHTML = '<option value="">Select item to sell</option>';
-    inventoryItems.forEach(item => {
-      if (item.quantity > 0) {
-        const option = document.createElement('option');
-        option.value = item.name;
-        option.textContent = `${item.name} - $${item.sellValue}`; // Show current sell value
-        sellSelect.appendChild(option);
-      }
-    });
-  }
-
-  function updatePlayerStats() {
-    playerStats.textContent = `Funds: $${funds} | Reputation: ${reputation} | Level: ${level}`;
-  }
-
-  function updateMissions() {
-    const missionSelect = document.getElementById('mission-select');
-    missionSelect.innerHTML = '<option value="">Select a mission</option>';
-    missions.forEach(mission => {
-      const option = document.createElement('option');
-      option.value = mission.name;
-      option.textContent = `${mission.name} - Cost: $${mission.cost}, Reward: $${mission.reward}`;
-      missionSelect.appendChild(option);
-    });
   }
 
   function performMission() {
@@ -165,8 +151,49 @@ document.addEventListener('DOMContentLoaded', function() {
       feedback.textContent = 'No mission selected.';
     }
   }
+  function updateInventory() {
+    inventoryList.innerHTML = '';
+    inventoryItems.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = `${item.name} (${item.quantity}) - $${item.cost}`;
+      inventoryList.appendChild(li);
+    });
   
-  updateInventory();
-  updateMissions();
-  updatePlayerStats();
+    const sellSelect = document.getElementById('sell-select');
+    sellSelect.innerHTML = '<option value="">Select item to sell</option>';
+    inventoryItems.forEach(item => {
+      if (item.quantity > 0) {
+        for (let i = 0; i < item.quantity; i++) {
+          const option = document.createElement('option');
+          option.value = item.name;
+          option.textContent = `${item.name} - $${item.sellValue}`;
+          sellSelect.appendChild(option);
+        }
+      }
+    });
+  
+    const buySelect = document.getElementById('buy-select');
+    buySelect.innerHTML = '<option value="">Select item to buy</option>';
+    inventoryItems.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.name;
+      option.textContent = `${item.name} - $${item.cost}`;
+      buySelect.appendChild(option);
+    });
+  }
+
+  function updatePlayerStats() {
+    playerStats.textContent = `Funds: $${funds} | Reputation: ${reputation} | Level: ${level}`;
+  }
+
+  function updateMissions() {
+    const missionSelect = document.getElementById('mission-select');
+    missionSelect.innerHTML = '<option value="">Select a mission</option>';
+    missions.forEach(mission => {
+      const option = document.createElement('option');
+      option.value = mission.name;
+      option.textContent = `${mission.name} - Cost: $${mission.cost}, Reward: $${mission.reward}`;
+      missionSelect.appendChild(option);
+    });
+  }
 });
