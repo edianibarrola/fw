@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Futuristic Crime Game</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="game-container">
+    <div id="game-display">
+      You are in the Neon Heights district, standing in front of a towering corporate building.
+    </div>
+    <div id="player-stats">
+      Funds: $1000 | Reputation: 50 | Level: 5
+    </div>
+    <div id="actions">
+        <h2>Actions</h2>
+        <label for="buy-select">Buy:</label>
+        <select id="buy-select">
+          <option value="">Select item to buy</option>
+          <option value="Item A">Item A</option>
+          <option value="Item B">Item B</option>
+          <option value="Item C">Item C</option>
+        </select>
+        <button id="buy-button">Buy</button>
+      
+        <label for="sell-select">Sell:</label>
+        <select id="sell-select">
+          <option value="">Select item to sell</option>
+          <!-- Populate options dynamically if needed -->
+        </select>
+        <button id="sell-button">Sell</button>
+      </div>
+    <div id="inventory-panel">
+      You currently have:
+      <ul id="inventory-list">
+        <!-- List items will be dynamically generated here -->
+      </ul>
+    </div>
+    <div id="mission-log">
+      Active Missions:
+      <ul id="mission-list">
+        <!-- List items will be dynamically generated here -->
+      </ul>
+    </div>
+    <div id="dialogue-panel">
+      NPC: "I need your help. Are you in?"
+    </div>
+    <div id="map-panel">
+      <img src="map.png" alt="Game Map">
+    </div>
+    <div id="feedback">
+      Welcome to the futuristic crime game! Explore the city, make strategic choices, and rise to the top of the criminal underworld.
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
