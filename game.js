@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     const inventoryItems = [
-      { name: "Item A", quantity: 1, cost: 100, sellValue: 50 },
-      { name: "Item B", quantity: 2, cost: 150, sellValue: 75 },
-      { name: "Item C", quantity: 3, cost: 200, sellValue: 100 }
+      { name: "Plasma Blaster", quantity: 1, cost: 100, sellValue: 50 },
+      { name: "Cybernetic Implant", quantity: 2, cost: 150, sellValue: 75 },
+      { name: "Nano Enhancer", quantity: 3, cost: 200, sellValue: 100 }
     ];
   
     let funds = 1000; // Initial funds
