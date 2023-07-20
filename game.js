@@ -1,12 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
   const inventoryItems = [
-    { name: "Plasma Blaster", quantity: 1, cost: 100, sellValue: 120, risk: 0.2 },
-    { name: "Cybernetic Implant", quantity: 2, cost: 150, sellValue: 180, risk: 0.3 },
-    { name: "Nano Enhancer", quantity: 3, cost: 200, sellValue: 240, risk: 0.4 },
-    { name: "Quantum Capacitor", quantity: 0, cost: 500, sellValue: 600, risk: 0.6 },
-    { name: "Fusion Core", quantity: 0, cost: 800, sellValue: 1000, risk: 0.7 }
+    { name: "Plasma Blaster", quantity: 1, cost: 100, sellValue: 100, risk: 0.2 },
+    { name: "Cybernetic Implant", quantity: 2, cost: 150, sellValue: 150, risk: 0.3 },
+    { name: "Nano Enhancer", quantity: 3, cost: 200, sellValue: 200, risk: 0.4 },
+    { name: "Quantum Capacitor", quantity: 0, cost: 500, sellValue: 500, risk: 0.6 },
+    { name: "Fusion Core", quantity: 0, cost: 800, sellValue: 800, risk: 0.7 }
   ];
-  
 
   const missions = [
     { name: "Infiltrate the Corporate Headquarters", successRate: 0.7, cost: 200, reward: 500, reputationGain: 50, reputationLoss: 10, levelGain: 1 },
@@ -23,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const missionFeedbackContainer = document.getElementById('mission-feedback');
   const buyActionFeedbackContainer = document.getElementById('action-feedback');
   const feedbackContainer = document.getElementById('market-feedback');
-  
+
   const buyButton = document.getElementById('buy-button');
   buyButton.addEventListener('click', buyItem);
 
@@ -42,39 +41,44 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(() => {
       inventoryItems.forEach(item => {
         const fluctuation = item.cost * (Math.random() * 0.2 - 0.1);
-        const newPrice = Math.max(10, item.cost + fluctuation); 
+        const newPrice = Math.max(10, item.cost + fluctuation);
+        const sellValueFluctuation = item.sellValue * (Math.random() * 0.2 - 0.1);
+        const newSellValue = Math.max(5, item.sellValue + sellValueFluctuation);
         item.cost = Math.round(newPrice);
-        item.sellValue = Math.round(newPrice * 0.8); 
+        item.sellValue = Math.round(newSellValue);
+      });
 
-        // Market event
-        if (Math.random() < 0.1) {  
-          const eventTypes = ["Tech Advances", "Market Crash", "Resource Scarcity"];
-          const selectedEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+      // Market event
+      if (Math.random() < 0.1) {  
+        const eventTypes = ["Tech Advances", "Market Crash", "Resource Scarcity"];
+        const selectedEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+
+        inventoryItems.forEach(item => {
           switch (selectedEvent) {
             case "Tech Advances":
               const techFluctuation = item.cost * (Math.random() * -0.2);
               item.cost = Math.round(Math.max(10, item.cost + techFluctuation));
-              item.sellValue = Math.round(Math.max(5, item.sellValue - techFluctuation / 2));
+              item.sellValue = Math.round(Math.max(5, item.sellValue + techFluctuation / 2));
               feedbackContainer.textContent = `Tech Advances! The cost of ${item.name} has decreased, and the sell value has increased.`;
               break;
             case "Market Crash":
               const crashFluctuation = item.cost * (Math.random() * -0.3);
               item.cost = Math.round(Math.max(10, item.cost + crashFluctuation));
-              item.sellValue = Math.round(Math.max(5, item.sellValue - crashFluctuation));
-              feedbackContainer.textContent = `Market Crash! The cost of ${item.name} has decreased, and the sell value has decreased even more.`;
+              item.sellValue = Math.round(Math.max(5, item.sellValue + crashFluctuation / 2));
+              feedbackContainer.textContent = `Market Crash! The cost of ${item.name} has decreased, and the sell value has decreased.`;
               break;
             case "Resource Scarcity":
               const scarcityFluctuation = item.cost * (Math.random() * 0.3);
               item.cost = Math.round(Math.max(10, item.cost + scarcityFluctuation));
-              item.sellValue = Math.round(Math.max(5, item.sellValue - scarcityFluctuation));
-              feedbackContainer.textContent = `Resource Scarcity! The cost of ${item.name} has increased, and the sell value has decreased.`;
+              item.sellValue = Math.round(Math.max(5, item.sellValue + scarcityFluctuation / 2));
+              feedbackContainer.textContent = `Resource Scarcity! The cost of ${item.name} has increased, and the sell value has increased.`;
               break;
           }
-          
-        }
-      });
-      updateInventory(); 
-    }, 10000);
+        });
+      }
+
+      updateInventory();
+    }, 10555);
   }
 
   function buyItem() {
@@ -108,6 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
       feedback.textContent = 'No item selected for purchase.';
     }
   }
+  
   function sellItem() {
     const selectItem = document.getElementById('sell-select');
     const selectedItem = selectItem.value;
@@ -141,9 +146,6 @@ document.addEventListener('DOMContentLoaded', function() {
       feedback.textContent = 'No item selected for sale.';
     }
   }
-  
-  
-
   function performMission() {
     const selectMission = document.getElementById('mission-select');
     const selectedMissionName = selectMission.value;
@@ -151,6 +153,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const selectedMission = missions.find(mission => mission.name === selectedMissionName);
       if (selectedMission) {
         if (funds >= selectedMission.cost) {
+          // Disable the mission button
+          missionButton.disabled = true;
+  
           funds -= selectedMission.cost;
           const success = Math.random() <= selectedMission.successRate;
           const missionInProgressMessage = `You are attempting to ${selectedMission.name}, everything looks clear.`;
@@ -158,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
           const feedbackElement = document.createElement('div');
           feedbackElement.textContent = missionInProgressMessage;
           missionFeedbackContainer.prepend(feedbackElement);
-
+  
           setTimeout(() => {
             if (success) {
               funds += selectedMission.reward;
@@ -170,10 +175,13 @@ document.addEventListener('DOMContentLoaded', function() {
               feedbackElement.textContent = `Mission failed. You lost ${selectedMission.reputationLoss} reputation.`;
             }
             updatePlayerStats();
-
+  
             if (missionFeedbackContainer.children.length > 3) {
               missionFeedbackContainer.removeChild(missionFeedbackContainer.lastChild);
             }
+  
+            // Re-enable the mission button after the mission outcome is determined
+            missionButton.disabled = false;
           }, getRandomDelay(5000, 15000)); // Random delay between 5 and 15 seconds
         } else {
           feedback.textContent = 'Insufficient funds for this mission.';
@@ -233,4 +241,5 @@ document.addEventListener('DOMContentLoaded', function() {
   function getRandomDelay(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
+  
 });
