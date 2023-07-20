@@ -3,8 +3,6 @@ document.addEventListener('DOMContentLoaded', function() {
     { name: "Plasma Blaster", quantity: 1, cost: 100, sellValue: 100, risk: 0.2 },
     { name: "Cybernetic Implant", quantity: 2, cost: 150, sellValue: 150, risk: 0.3 },
     { name: "Nano Enhancer", quantity: 3, cost: 200, sellValue: 200, risk: 0.4 },
-    { name: "Quantum Capacitor", quantity: 0, cost: 500, sellValue: 500, risk: 0.6 },
-    { name: "Fusion Core", quantity: 0, cost: 800, sellValue: 800, risk: 0.7 }
   ];
 
   const missions = [
@@ -13,11 +11,18 @@ document.addEventListener('DOMContentLoaded', function() {
     { name: "Eliminate the Rival Gang", successRate: 0.5, cost: 300, reward: 700, reputationGain: 70, reputationLoss: 15, levelGain: 2 },
   ];
 
+  const equipment = [
+    { name: "Stealth Cloak", cost: 250, successRateBonus: 0.2 },
+    { name: "Hacking Device", cost: 300, successRateBonus: 0.3 },
+    { name: "Combat Stimulant", cost: 200, successRateBonus: 0.1 }
+  ];
+
   let funds = 1000; // Initial funds
   let reputation = 50; // Initial reputation
   let level = 1; // Initial level
 
   const inventoryList = document.getElementById('inventory-list');
+  const equipmentList = document.getElementById('equipment-list');
   const playerStats = document.getElementById('player-stats');
   const missionFeedbackContainer = document.getElementById('mission-feedback');
   const buyActionFeedbackContainer = document.getElementById('action-feedback');
@@ -29,11 +34,15 @@ document.addEventListener('DOMContentLoaded', function() {
   const sellButton = document.getElementById('sell-button');
   sellButton.addEventListener('click', sellItem);
 
+  const useItemButton = document.getElementById('use-item-button');
+  useItemButton.addEventListener('click', useItem);
+
   const missionButton = document.getElementById('mission-button');
   missionButton.addEventListener('click', performMission);
 
   startPriceFluctuations();
   updateInventory();
+  updateEquipment();
   updateMissions();
   updatePlayerStats();
 
@@ -49,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
 
       // Market event
-      if (Math.random() < 0.1) {  
+      if (Math.random() < 0.1) {
         const eventTypes = ["Tech Advances", "Market Crash", "Resource Scarcity"];
         const selectedEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
 
@@ -112,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
       feedback.textContent = 'No item selected for purchase.';
     }
   }
-  
+
   function sellItem() {
     const selectItem = document.getElementById('sell-select');
     const selectedItem = selectItem.value;
@@ -135,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         updateInventory();
         updatePlayerStats();
-  
+
         if (buyActionFeedbackContainer.children.length > 3) {
           buyActionFeedbackContainer.removeChild(buyActionFeedbackContainer.lastChild);
         }
@@ -146,6 +155,32 @@ document.addEventListener('DOMContentLoaded', function() {
       feedback.textContent = 'No item selected for sale.';
     }
   }
+
+  function useItem() {
+    const selectItem = document.getElementById('equipment-select');
+    const selectedItemName = selectItem.value;
+    if (selectedItemName) {
+      const selectedItem = equipment.find(item => item.name === selectedItemName);
+      if (selectedItem) {
+        if (funds >= selectedItem.cost) {
+          funds -= selectedItem.cost;
+          const feedbackElement = document.createElement('div');
+          feedbackElement.textContent = `You bought ${selectedItem.name} for $${selectedItem.cost}.`;
+          buyActionFeedbackContainer.prepend(feedbackElement);
+          updatePlayerStats();
+
+          if (buyActionFeedbackContainer.children.length > 3) {
+            buyActionFeedbackContainer.removeChild(buyActionFeedbackContainer.lastChild);
+          }
+        } else {
+          feedback.textContent = 'Insufficient funds.';
+        }
+      }
+    } else {
+      feedback.textContent = 'No equipment selected for purchase.';
+    }
+  }
+
   function performMission() {
     const selectMission = document.getElementById('mission-select');
     const selectedMissionName = selectMission.value;
@@ -155,15 +190,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (funds >= selectedMission.cost) {
           // Disable the mission button
           missionButton.disabled = true;
-  
+
           funds -= selectedMission.cost;
-          const success = Math.random() <= selectedMission.successRate;
+          const successRate = selectedMission.successRate;
+          const success = Math.random() <= successRate;
           const missionInProgressMessage = `You are attempting to ${selectedMission.name}, everything looks clear.`;
-        
+
           const feedbackElement = document.createElement('div');
           feedbackElement.textContent = missionInProgressMessage;
           missionFeedbackContainer.prepend(feedbackElement);
-  
+
           setTimeout(() => {
             if (success) {
               funds += selectedMission.reward;
@@ -175,11 +211,11 @@ document.addEventListener('DOMContentLoaded', function() {
               feedbackElement.textContent = `Mission failed. You lost ${selectedMission.reputationLoss} reputation.`;
             }
             updatePlayerStats();
-  
+
             if (missionFeedbackContainer.children.length > 3) {
               missionFeedbackContainer.removeChild(missionFeedbackContainer.lastChild);
             }
-  
+
             // Re-enable the mission button after the mission outcome is determined
             missionButton.disabled = false;
           }, getRandomDelay(5000, 15000)); // Random delay between 5 and 15 seconds
@@ -199,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
       li.textContent = `${item.name} (${item.quantity}) - $${item.sellValue}`;
       inventoryList.appendChild(li);
     });
-  
+
     const sellSelect = document.getElementById('sell-select');
     sellSelect.innerHTML = '<option value="">Select item to sell</option>';
     inventoryItems.forEach(item => {
@@ -212,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
     });
-  
+
     const buySelect = document.getElementById('buy-select');
     buySelect.innerHTML = '<option value="">Select item to buy</option>';
     inventoryItems.forEach(item => {
@@ -220,6 +256,24 @@ document.addEventListener('DOMContentLoaded', function() {
       option.value = item.name;
       option.textContent = `${item.name} - $${item.cost}`;
       buySelect.appendChild(option);
+    });
+  }
+
+  function updateEquipment() {
+    equipmentList.innerHTML = '';
+    equipment.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = `${item.name} - $${item.cost}`;
+      equipmentList.appendChild(li);
+    });
+
+    const equipmentSelect = document.getElementById('equipment-select');
+    equipmentSelect.innerHTML = '<option value="">Select equipment to buy</option>';
+    equipment.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.name;
+      option.textContent = `${item.name} - $${item.cost}`;
+      equipmentSelect.appendChild(option);
     });
   }
 
@@ -241,5 +295,5 @@ document.addEventListener('DOMContentLoaded', function() {
   function getRandomDelay(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
-  
+
 });

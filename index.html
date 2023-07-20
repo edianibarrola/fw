@@ -11,32 +11,51 @@
     <h1>Futuristic Game</h1>
     <div id="player-stats"></div>
 
-    
-    <div id="inventory">
-      <h2>Inventory</h2>
-      <ul id="inventory-list">
-        <li>Plasma Blaster (1) - $100</li>
-        <li>Cybernetic Implant (2) - $150</li>
-        <li>Nano Enhancer (3) - $200</li>
-      </ul>
-    </div>
-    
-    <div id="actions">
-      <h2>Actions</h2>
-      <label for="buy-select">Buy:</label>
-      <select id="buy-select">
-        <option value="">Select item to buy</option>
-        <option value="Plasma Blaster">Plasma Blaster - $100</option>
-        <option value="Cybernetic Implant">Cybernetic Implant - $150</option>
-        <option value="Nano Enhancer">Nano Enhancer - $200</option>
-      </select>
-      <button id="buy-button">Buy</button>
-    
-      <label for="sell-select">Sell:</label>
-      <select id="sell-select">
-        <option value="">Select item to sell</option>
-      </select>
-      <button id="sell-button">Sell</button>
+    <div id="game-display">
+      <div id="inventory">
+        <h2>Inventory</h2>
+        <ul id="inventory-list">
+          <li>Plasma Blaster (1) - $100</li>
+          <li>Cybernetic Implant (2) - $150</li>
+          <li>Nano Enhancer (3) - $200</li>
+        </ul>
+      </div>
+
+      <div id="actions">
+        <h2>Actions</h2>
+        <label for="buy-select">Buy:</label>
+        <select id="buy-select">
+          <option value="">Select item to buy</option>
+          <option value="Plasma Blaster">Plasma Blaster - $100</option>
+          <option value="Cybernetic Implant">Cybernetic Implant - $150</option>
+          <option value="Nano Enhancer">Nano Enhancer - $200</option>
+        </select>
+        <button id="buy-button">Buy</button>
+
+        <label for="sell-select">Sell:</label>
+        <select id="sell-select">
+          <option value="">Select item to sell</option>
+        </select>
+        <button id="sell-button">Sell</button>
+      </div>
+
+      <div id="equipment">
+        <h2>Equipment</h2>
+        <ul id="equipment-list">
+          <li>Stealth Cloak - $250</li>
+          <li>Hacking Device - $300</li>
+          <li>Combat Stimulant - $200</li>
+        </ul>
+      </div>
+
+      <div id="use-item">
+        <h2>Use Item</h2>
+        <label for="equipment-select">Select Equipment:</label>
+        <select id="equipment-select">
+          <option value="">Select equipment to buy</option>
+        </select>
+        <button id="use-item-button">Use Item</button>
+      </div>
     </div>
 
     <div id="missions">
@@ -47,10 +66,11 @@
         <option value="Infiltrate the Corporate Headquarters">Infiltrate the Corporate Headquarters</option>
         <option value="Retrieve Stolen Data">Retrieve Stolen Data</option>
         <option value="Eliminate the Rival Gang">Eliminate the Rival Gang</option>
-      </select><button id="mission-button">Perform Mission</button>
+      </select>
+      <button id="mission-button">Perform Mission</button>
       <div id="mission-result"></div>
     </div>
-    
+
     <div id="feedback-container">
       <div id="mission-feedback"></div>
       <div id="action-feedback"></div>
