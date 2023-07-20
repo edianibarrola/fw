@@ -1,11 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
   const inventoryItems = [
-    { name: "Plasma Blaster", quantity: 1, cost: 100, sellValue: 75, risk: 0.2 },
-    { name: "Cybernetic Implant", quantity: 2, cost: 150, sellValue: 120, risk: 0.3 },
-    { name: "Nano Enhancer", quantity: 3, cost: 200, sellValue: 160, risk: 0.4 },
-    { name: "Quantum Capacitor", quantity: 0, cost: 500, sellValue: 400, risk: 0.6 },
-    { name: "Fusion Core", quantity: 0, cost: 800, sellValue: 600, risk: 0.7 }
+    { name: "Plasma Blaster", quantity: 1, cost: 100, sellValue: 120, risk: 0.2 },
+    { name: "Cybernetic Implant", quantity: 2, cost: 150, sellValue: 180, risk: 0.3 },
+    { name: "Nano Enhancer", quantity: 3, cost: 200, sellValue: 240, risk: 0.4 },
+    { name: "Quantum Capacitor", quantity: 0, cost: 500, sellValue: 600, risk: 0.6 },
+    { name: "Fusion Core", quantity: 0, cost: 800, sellValue: 1000, risk: 0.7 }
   ];
+  
 
   const missions = [
     { name: "Infiltrate the Corporate Headquarters", successRate: 0.7, cost: 200, reward: 500, reputationGain: 50, reputationLoss: 10, levelGain: 1 },
@@ -49,27 +50,27 @@ document.addEventListener('DOMContentLoaded', function() {
         if (Math.random() < 0.1) {  
           const eventTypes = ["Tech Advances", "Market Crash", "Resource Scarcity"];
           const selectedEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-
-          switch(selectedEvent) {
+          switch (selectedEvent) {
             case "Tech Advances":
               const techFluctuation = item.cost * (Math.random() * -0.2);
               item.cost = Math.round(Math.max(10, item.cost + techFluctuation));
-              item.sellValue = Math.round(Math.max(5, item.sellValue + techFluctuation / 2));
-              feedbackContainer.textContent = `Tech Advances! The cost of ${item.name} has decreased.`;
+              item.sellValue = Math.round(Math.max(5, item.sellValue - techFluctuation / 2));
+              feedbackContainer.textContent = `Tech Advances! The cost of ${item.name} has decreased, and the sell value has increased.`;
               break;
             case "Market Crash":
               const crashFluctuation = item.cost * (Math.random() * -0.3);
               item.cost = Math.round(Math.max(10, item.cost + crashFluctuation));
-              item.sellValue = Math.round(Math.max(5, item.sellValue + crashFluctuation / 2));
-              feedbackContainer.textContent = `Market Crash! The cost of ${item.name} has decreased.`;
+              item.sellValue = Math.round(Math.max(5, item.sellValue - crashFluctuation));
+              feedbackContainer.textContent = `Market Crash! The cost of ${item.name} has decreased, and the sell value has decreased even more.`;
               break;
             case "Resource Scarcity":
               const scarcityFluctuation = item.cost * (Math.random() * 0.3);
               item.cost = Math.round(Math.max(10, item.cost + scarcityFluctuation));
-              item.sellValue = Math.round(Math.max(5, item.sellValue + scarcityFluctuation / 2));
-              feedbackContainer.textContent = `Resource Scarcity! The cost of ${item.name} has increased.`;
+              item.sellValue = Math.round(Math.max(5, item.sellValue - scarcityFluctuation));
+              feedbackContainer.textContent = `Resource Scarcity! The cost of ${item.name} has increased, and the sell value has decreased.`;
               break;
           }
+          
         }
       });
       updateInventory(); 
@@ -107,28 +108,29 @@ document.addEventListener('DOMContentLoaded', function() {
       feedback.textContent = 'No item selected for purchase.';
     }
   }
-
   function sellItem() {
     const selectItem = document.getElementById('sell-select');
     const selectedItem = selectItem.value;
     if (selectedItem) {
       const existingItem = inventoryItems.find(item => item.name === selectedItem);
       if (existingItem && existingItem.quantity > 0) {
-        const successRate = 0.6; // Selling success rate
+        const successRate = 1 - existingItem.risk; // Adjusted success rate based on risk
         if (Math.random() <= successRate) {
           existingItem.quantity--;
           funds += existingItem.sellValue;
+          reputation += existingItem.sellValue * 0.2; // Increase reputation upon successful sale
           const feedbackElement = document.createElement('div');
-          feedbackElement.textContent = `You successfully sold ${selectedItem} for $${existingItem.sellValue}.`;
+          feedbackElement.textContent = `You successfully sold ${selectedItem} for $${existingItem.sellValue}. You gained reputation.`;
           buyActionFeedbackContainer.prepend(feedbackElement);
         } else {
+          reputation -= existingItem.sellValue * 0.1; // Decrease reputation when selling fails
           const feedbackElement = document.createElement('div');
-          feedbackElement.textContent = `Failed to sell ${selectedItem}. Try again later.`;
+          feedbackElement.textContent = `Failed to sell ${selectedItem}. You lost some reputation.`;
           buyActionFeedbackContainer.prepend(feedbackElement);
         }
         updateInventory();
         updatePlayerStats();
-
+  
         if (buyActionFeedbackContainer.children.length > 3) {
           buyActionFeedbackContainer.removeChild(buyActionFeedbackContainer.lastChild);
         }
@@ -139,6 +141,8 @@ document.addEventListener('DOMContentLoaded', function() {
       feedback.textContent = 'No item selected for sale.';
     }
   }
+  
+  
 
   function performMission() {
     const selectMission = document.getElementById('mission-select');
@@ -184,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
     inventoryList.innerHTML = '';
     inventoryItems.forEach(item => {
       const li = document.createElement('li');
-      li.textContent = `${item.name} (${item.quantity}) - $${item.cost}`;
+      li.textContent = `${item.name} (${item.quantity}) - $${item.sellValue}`;
       inventoryList.appendChild(li);
     });
   
