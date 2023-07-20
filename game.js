@@ -8,8 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
   ];
 
   const equipment = [
-    { name: "Stealth Cloak", quantity: 1, successModifier: 0.2 },
-    { name: "Hacking Device", quantity: 2, successModifier: 0.3 },
+    { name: "Stealth Cloak", quantity: 1, successModifier: 0.2, durability: 3 },
+    { name: "Hacking Device", quantity: 2, successModifier: 0.3, durability: 3 },
     { name: "Combat Stimulant", quantity: 0, successModifier: 0.0 }
   ];
 
@@ -131,23 +131,33 @@ document.addEventListener('DOMContentLoaded', function() {
     if (selectedItem) {
       const existingItem = equipment.find(item => item.name === selectedItem);
       if (existingItem && existingItem.quantity > 0) {
+        if (existingItem.durability !== undefined && existingItem.durability === 0) {
+          feedback.textContent = 'Item durability is depleted and cannot be used.';
+          return;
+        }
+
         // Check if item is already equipped
         const isAlreadyEquipped = equippedItems.some(item => item.name === selectedItem);
         if (isAlreadyEquipped) {
           feedback.textContent = 'Item is already equipped.';
           return;
         }
-  
+
         // Use the equipment item
         existingItem.quantity--;
         equippedItems.push(existingItem);
+        
+        if (existingItem.durability !== undefined) {
+          existingItem.durability--;
+        }
+
         const feedbackElement = document.createElement('div');
         feedbackElement.textContent = `You used ${selectedItem}.`;
         buyActionFeedbackContainer.prepend(feedbackElement);
         updateEquipment();
         updatePlayerStats();
         updateMissions(); // Update mission success rates
-  
+
         if (buyActionFeedbackContainer.children.length > 3) {
           buyActionFeedbackContainer.removeChild(buyActionFeedbackContainer.lastChild);
         }
@@ -182,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateInventory();
         updatePlayerStats();
         updateMissions(); // Update mission success rates
-  
+
         if (buyActionFeedbackContainer.children.length > 3) {
           buyActionFeedbackContainer.removeChild(buyActionFeedbackContainer.lastChild);
         }
@@ -203,18 +213,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (funds >= selectedMission.cost) {
           // Disable the mission button
           missionButton.disabled = true;
-  
+
           const equipmentSuccessModifier = equippedItems.reduce((total, item) => total + item.successModifier, 0);
           const successRate = selectedMission.baseSuccessRate + equipmentSuccessModifier;
           const adjustedSuccessRate = Math.min(Math.max(successRate, 0), 1); // Clamp the success rate between 0 and 1
-  
+
           funds -= selectedMission.cost;
           const missionInProgressMessage = `You are attempting to ${selectedMission.name}, everything looks clear.`;
-  
+
           const feedbackElement = document.createElement('div');
           feedbackElement.textContent = missionInProgressMessage;
           missionFeedbackContainer.prepend(feedbackElement);
-  
+
           setTimeout(() => {
             if (Math.random() <= adjustedSuccessRate) {
               funds += selectedMission.reward;
@@ -224,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
               reputation -= selectedMission.reputationLoss;
               feedbackElement.textContent = `Mission failed. You lost ${selectedMission.reputationLoss} reputation.`;
-  
+
               // Remove a random equipped item upon mission failure
               if (equippedItems.length > 0) {
                 const randomIndex = Math.floor(Math.random() * equippedItems.length);
@@ -233,11 +243,11 @@ document.addEventListener('DOMContentLoaded', function() {
               }
             }
             updatePlayerStats();
-  
+
             if (missionFeedbackContainer.children.length > 3) {
               missionFeedbackContainer.removeChild(missionFeedbackContainer.lastChild);
             }
-  
+
             // Re-enable the mission button after the mission outcome is determined
             missionButton.disabled = false;
           }, getRandomDelay(5000, 15000)); // Random delay between 5 and 15 seconds
@@ -250,26 +260,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  function updateEquipment() {
-    equipmentList.innerHTML = '';
-    equipment.forEach(item => {
-      const li = document.createElement('li');
-      li.textContent = `${item.name} (${item.quantity})`;
-      equipmentList.appendChild(li);
-    });
-  
-    const useSelect = document.getElementById('equipment-select');
-    useSelect.innerHTML = '<option value="">Select item to use</option>';
-    equipment.forEach(item => {
-      if (item.quantity > 0) {
-        const option = document.createElement('option');
-        option.value = item.name;
-        option.textContent = `${item.name}`;
-        useSelect.appendChild(option);
-      }
-    });
-  }
-
   function updateInventory() {
     inventoryList.innerHTML = '';
     inventoryItems.forEach(item => {
@@ -305,7 +295,8 @@ document.addEventListener('DOMContentLoaded', function() {
     equipmentList.innerHTML = '';
     equipment.forEach(item => {
       const li = document.createElement('li');
-      li.textContent = `${item.name} (${item.quantity})`;
+      const durability = item.durability !== undefined ? `Durability: ${item.durability}` : '';
+      li.textContent = `${item.name} (${item.quantity}) ${durability}`;
       equipmentList.appendChild(li);
     });
 
@@ -322,30 +313,32 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function updatePlayerStats() {
-    const equippedItemsText = equippedItems.length > 0 ? equippedItems.map(item => item.name).join(', ') : 'None';
+    const equippedItemsText = equippedItems.length > 0 ? equippedItems.map(item => {
+      const durability = item.durability !== undefined ? `(${item.durability})` : '';
+      return `${item.name}${durability}`;
+    }).join(', ') : 'None';
     playerStats.innerHTML = `Funds: $${funds} | Reputation: ${reputation} | Level: ${level} | Equipped Items: ${equippedItemsText}`;
   }
-  
+
   function updateMissions() {
     const missionSelect = document.getElementById('mission-select');
     const selectedMissionValue = missionSelect.value;
-  
+
     missionSelect.innerHTML = '';
-  
+
     missions.forEach(mission => {
       const equipmentSuccessModifier = equippedItems.reduce((total, item) => total + item.successModifier, 0);
       const successRate = mission.baseSuccessRate + equipmentSuccessModifier;
       const adjustedSuccessRate = Math.min(Math.max(successRate, 0), 1);
-  
+
       const option = document.createElement('option');
       option.value = mission.name;
       option.textContent = `${mission.name} - Success Rate: ${(adjustedSuccessRate * 100).toFixed(2)}% - Cost: $${mission.cost}, Reward: $${mission.reward}`;
       missionSelect.appendChild(option);
     });
-  
+
     missionSelect.value = selectedMissionValue;
   }
-  
 
   function getRandomDelay(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
