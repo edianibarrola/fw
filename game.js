@@ -3,23 +3,26 @@ document.addEventListener('DOMContentLoaded', function() {
     { name: "Plasma Blaster", quantity: 1, cost: 100, sellValue: 100, risk: 0.2 },
     { name: "Cybernetic Implant", quantity: 2, cost: 150, sellValue: 150, risk: 0.3 },
     { name: "Nano Enhancer", quantity: 3, cost: 200, sellValue: 200, risk: 0.4 },
-  ];
-
-  const missions = [
-    { name: "Infiltrate the Corporate Headquarters", successRate: 0.7, cost: 200, reward: 500, reputationGain: 50, reputationLoss: 10, levelGain: 1 },
-    { name: "Retrieve Stolen Data", successRate: 0.8, cost: 150, reward: 300, reputationGain: 30, reputationLoss: 5, levelGain: 1 },
-    { name: "Eliminate the Rival Gang", successRate: 0.5, cost: 300, reward: 700, reputationGain: 70, reputationLoss: 15, levelGain: 2 },
+    { name: "Quantum Capacitor", quantity: 0, cost: 500, sellValue: 500, risk: 0.6 },
+    { name: "Fusion Core", quantity: 0, cost: 800, sellValue: 800, risk: 0.7 }
   ];
 
   const equipment = [
-    { name: "Stealth Cloak", cost: 250, successRateBonus: 0.2 },
-    { name: "Hacking Device", cost: 300, successRateBonus: 0.3 },
-    { name: "Combat Stimulant", cost: 200, successRateBonus: 0.1 }
+    { name: "Stealth Cloak", quantity: 1, successModifier: 0.1 },
+    { name: "Hacking Device", quantity: 2, successModifier: 0.15 },
+    { name: "Combat Stimulant", quantity: 0, successModifier: 0.0 }
+  ];
+
+  const missions = [
+    { name: "Infiltrate the Corporate Headquarters", baseSuccessRate: 0.7, cost: 200, reward: 500, reputationGain: 50, reputationLoss: 10, levelGain: 1 },
+    { name: "Retrieve Stolen Data", baseSuccessRate: 0.8, cost: 150, reward: 300, reputationGain: 30, reputationLoss: 5, levelGain: 1 },
+    { name: "Eliminate the Rival Gang", baseSuccessRate: 0.5, cost: 300, reward: 700, reputationGain: 70, reputationLoss: 15, levelGain: 2 },
   ];
 
   let funds = 1000; // Initial funds
   let reputation = 50; // Initial reputation
   let level = 1; // Initial level
+  let equippedItems = [];
 
   const inventoryList = document.getElementById('inventory-list');
   const equipmentList = document.getElementById('equipment-list');
@@ -158,26 +161,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function useItem() {
     const selectItem = document.getElementById('equipment-select');
-    const selectedItemName = selectItem.value;
-    if (selectedItemName) {
-      const selectedItem = equipment.find(item => item.name === selectedItemName);
-      if (selectedItem) {
-        if (funds >= selectedItem.cost) {
-          funds -= selectedItem.cost;
-          const feedbackElement = document.createElement('div');
-          feedbackElement.textContent = `You bought ${selectedItem.name} for $${selectedItem.cost}.`;
-          buyActionFeedbackContainer.prepend(feedbackElement);
-          updatePlayerStats();
-
-          if (buyActionFeedbackContainer.children.length > 3) {
-            buyActionFeedbackContainer.removeChild(buyActionFeedbackContainer.lastChild);
-          }
-        } else {
-          feedback.textContent = 'Insufficient funds.';
+    const selectedItem = selectItem.value;
+    if (selectedItem) {
+      const existingItem = equipment.find(item => item.name === selectedItem);
+      if (existingItem && existingItem.quantity > 0) {
+        // Use the equipment item
+        existingItem.quantity--;
+        equippedItems.push(existingItem);
+        const feedbackElement = document.createElement('div');
+        feedbackElement.textContent = `You used ${selectedItem}.`;
+        buyActionFeedbackContainer.prepend(feedbackElement);
+        updateEquipment();
+        updatePlayerStats();
+  
+        if (buyActionFeedbackContainer.children.length > 3) {
+          buyActionFeedbackContainer.removeChild(buyActionFeedbackContainer.lastChild);
         }
+      } else {
+        feedback.textContent = 'Item not found in equipment or no quantity available to use.';
       }
     } else {
-      feedback.textContent = 'No equipment selected for purchase.';
+      feedback.textContent = 'No item selected to use.';
     }
   }
 
@@ -191,17 +195,19 @@ document.addEventListener('DOMContentLoaded', function() {
           // Disable the mission button
           missionButton.disabled = true;
 
+          const equipmentSuccessModifier = equippedItems.reduce((total, item) => total + item.successModifier, 0);
+          const successRate = selectedMission.baseSuccessRate + equipmentSuccessModifier;
+          const adjustedSuccessRate = Math.min(Math.max(successRate, 0), 1); // Clamp the success rate between 0 and 1
+  
           funds -= selectedMission.cost;
-          const successRate = selectedMission.successRate;
-          const success = Math.random() <= successRate;
           const missionInProgressMessage = `You are attempting to ${selectedMission.name}, everything looks clear.`;
-
+        
           const feedbackElement = document.createElement('div');
           feedbackElement.textContent = missionInProgressMessage;
           missionFeedbackContainer.prepend(feedbackElement);
-
+  
           setTimeout(() => {
-            if (success) {
+            if (Math.random() <= adjustedSuccessRate) {
               funds += selectedMission.reward;
               reputation += selectedMission.reputationGain;
               level += selectedMission.levelGain;
@@ -211,11 +217,11 @@ document.addEventListener('DOMContentLoaded', function() {
               feedbackElement.textContent = `Mission failed. You lost ${selectedMission.reputationLoss} reputation.`;
             }
             updatePlayerStats();
-
+  
             if (missionFeedbackContainer.children.length > 3) {
               missionFeedbackContainer.removeChild(missionFeedbackContainer.lastChild);
             }
-
+  
             // Re-enable the mission button after the mission outcome is determined
             missionButton.disabled = false;
           }, getRandomDelay(5000, 15000)); // Random delay between 5 and 15 seconds
@@ -263,37 +269,42 @@ document.addEventListener('DOMContentLoaded', function() {
     equipmentList.innerHTML = '';
     equipment.forEach(item => {
       const li = document.createElement('li');
-      li.textContent = `${item.name} - $${item.cost}`;
+      li.textContent = `${item.name} (${item.quantity})`;
       equipmentList.appendChild(li);
     });
 
-    const equipmentSelect = document.getElementById('equipment-select');
-    equipmentSelect.innerHTML = '<option value="">Select equipment to buy</option>';
+    const useSelect = document.getElementById('equipment-select');
+    useSelect.innerHTML = '<option value="">Select item to use</option>';
     equipment.forEach(item => {
-      const option = document.createElement('option');
-      option.value = item.name;
-      option.textContent = `${item.name} - $${item.cost}`;
-      equipmentSelect.appendChild(option);
+      if (item.quantity > 0) {
+        const option = document.createElement('option');
+        option.value = item.name;
+        option.textContent = `${item.name}`;
+        useSelect.appendChild(option);
+      }
     });
   }
 
   function updatePlayerStats() {
-    playerStats.textContent = `Funds: $${funds} | Reputation: ${reputation} | Level: ${level}`;
+    const equippedItemsText = equippedItems.length > 0 ? equippedItems.map(item => item.name).join(', ') : 'None';
+    playerStats.innerHTML = `Funds: $${funds} | Reputation: ${reputation} | Level: ${level} | Equipped Items: ${equippedItemsText}`;
   }
-
+  
   function updateMissions() {
     const missionSelect = document.getElementById('mission-select');
     missionSelect.innerHTML = '<option value="">Select a mission</option>';
     missions.forEach(mission => {
+      const successRate = mission.baseSuccessRate + equippedItems.reduce((total, item) => total + item.successModifier, 0);
+      const adjustedSuccessRate = Math.min(Math.max(successRate, 0), 1);
       const option = document.createElement('option');
       option.value = mission.name;
-      option.textContent = `${mission.name} - Cost: $${mission.cost}, Reward: $${mission.reward}`;
+      option.textContent = `${mission.name} - Success Rate: ${(adjustedSuccessRate * 100).toFixed(2)}% - Cost: $${mission.cost}, Reward: $${mission.reward}`;
       missionSelect.appendChild(option);
     });
   }
+  
 
   function getRandomDelay(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
-
 });
